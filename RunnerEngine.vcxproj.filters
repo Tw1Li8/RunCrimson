@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src"><UniqueIdentifier>{91a0ecfb-f0e3-41cc-93a0-4ccfedcc1001}</UniqueIdentifier></Filter>
+    <Filter Include="src\Core"><UniqueIdentifier>{91a0ecfb-f0e3-41cc-93a0-4ccfedcc1002}</UniqueIdentifier></Filter>
+    <Filter Include="src\Input"><UniqueIdentifier>{91a0ecfb-f0e3-41cc-93a0-4ccfedcc1003}</UniqueIdentifier></Filter>
+    <Filter Include="src\Object"><UniqueIdentifier>{91a0ecfb-f0e3-41cc-93a0-4ccfedcc1004}</UniqueIdentifier></Filter>
+    <Filter Include="src\Scene"><UniqueIdentifier>{91a0ecfb-f0e3-41cc-93a0-4ccfedcc1005}</UniqueIdentifier></Filter>
+    <Filter Include="src\Graphics"><UniqueIdentifier>{91a0ecfb-f0e3-41cc-93a0-4ccfedcc1006}</UniqueIdentifier></Filter>
+    <Filter Include="src\Physics"><UniqueIdentifier>{91a0ecfb-f0e3-41cc-93a0-4ccfedcc1007}</UniqueIdentifier></Filter>
+    <Filter Include="src\Resources"><UniqueIdentifier>{91a0ecfb-f0e3-41cc-93a0-4ccfedcc1008}</UniqueIdentifier></Filter>
+    <Filter Include="src\Game"><UniqueIdentifier>{91a0ecfb-f0e3-41cc-93a0-4ccfedcc1009}</UniqueIdentifier></Filter>
+    <Filter Include="Shaders"><UniqueIdentifier>{91a0ecfb-f0e3-41cc-93a0-4ccfedcc1010}</UniqueIdentifier></Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp"><Filter>src</Filter></ClCompile>
+    <ClCompile Include="src\Core\Application.cpp"><Filter>src\Core</Filter></ClCompile>
+    <ClCompile Include="src\Core\Time.cpp"><Filter>src\Core</Filter></ClCompile>
+    <ClCompile Include="src\Core\WindowContext.cpp"><Filter>src\Core</Filter></ClCompile>
+    <ClCompile Include="src\Input\Input.cpp"><Filter>src\Input</Filter></ClCompile>
+    <ClCompile Include="src\Object\GameObject.cpp"><Filter>src\Object</Filter></ClCompile>
+    <ClCompile Include="src\Scene\Scene.cpp"><Filter>src\Scene</Filter></ClCompile>
+    <ClCompile Include="src\Graphics\GraphicsContext.cpp"><Filter>src\Graphics</Filter></ClCompile>
+    <ClCompile Include="src\Graphics\Shader.cpp"><Filter>src\Graphics</Filter></ClCompile>
+    <ClCompile Include="src\Graphics\Mesh.cpp"><Filter>src\Graphics</Filter></ClCompile>
+    <ClCompile Include="src\Graphics\Material.cpp"><Filter>src\Graphics</Filter></ClCompile>
+    <ClCompile Include="src\Graphics\MeshRenderer.cpp"><Filter>src\Graphics</Filter></ClCompile>
+    <ClCompile Include="src\Physics\PhysicsWorld2D.cpp"><Filter>src\Physics</Filter></ClCompile>
+    <ClCompile Include="src\Resources\ResourceManager.cpp"><Filter>src\Resources</Filter></ClCompile>
+    <ClCompile Include="src\Game\RunnerGameScene.cpp"><Filter>src\Game</Filter></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Core\Application.h"><Filter>src\Core</Filter></ClInclude>
+    <ClInclude Include="src\Core\EngineTypes.h"><Filter>src\Core</Filter></ClInclude>
+    <ClInclude Include="src\Core\Time.h"><Filter>src\Core</Filter></ClInclude>
+    <ClInclude Include="src\Core\WindowContext.h"><Filter>src\Core</Filter></ClInclude>
+    <ClInclude Include="src\Input\Input.h"><Filter>src\Input</Filter></ClInclude>
+    <ClInclude Include="src\Object\Component.h"><Filter>src\Object</Filter></ClInclude>
+    <ClInclude Include="src\Object\GameObject.h"><Filter>src\Object</Filter></ClInclude>
+    <ClInclude Include="src\Object\Transform.h"><Filter>src\Object</Filter></ClInclude>
+    <ClInclude Include="src\Scene\Scene.h"><Filter>src\Scene</Filter></ClInclude>
+    <ClInclude Include="src\Graphics\GraphicsContext.h"><Filter>src\Graphics</Filter></ClInclude>
+    <ClInclude Include="src\Graphics\Shader.h"><Filter>src\Graphics</Filter></ClInclude>
+    <ClInclude Include="src\Graphics\Mesh.h"><Filter>src\Graphics</Filter></ClInclude>
+    <ClInclude Include="src\Graphics\Material.h"><Filter>src\Graphics</Filter></ClInclude>
+    <ClInclude Include="src\Graphics\MeshRenderer.h"><Filter>src\Graphics</Filter></ClInclude>
+    <ClInclude Include="src\Physics\PhysicsWorld2D.h"><Filter>src\Physics</Filter></ClInclude>
+    <ClInclude Include="src\Physics\Rigidbody2D.h"><Filter>src\Physics</Filter></ClInclude>
+    <ClInclude Include="src\Physics\Collider2D.h"><Filter>src\Physics</Filter></ClInclude>
+    <ClInclude Include="src\Resources\ResourceManager.h"><Filter>src\Resources</Filter></ClInclude>
+    <ClInclude Include="src\Game\RunnerGameScene.h"><Filter>src\Game</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\BasicColor.hlsl"><Filter>Shaders</Filter></None>
+  </ItemGroup>
+</Project>
