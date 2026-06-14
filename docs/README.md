@@ -1,49 +1,45 @@
-# RunnerEngine
+﻿# CrimsonRunner 문서 목차
 
-RunnerEngine is a small C++ and DirectX 11 learning project built as a minimal custom game engine prototype. It is not a full commercial engine architecture. The goal is to show the core structure of a simple Win32/DirectX game loop and a playable runner game in a form that is easy to build and inspect in Visual Studio.
+CrimsonRunner는 교도소 탈출을 주제로 한 2D 러닝 액션 게임입니다. 플레이어는 자동으로 진행되는 상황에서 점프와 슬라이드로 경찰, 개, 벽, 위쪽 장애물을 피합니다. 충돌하면 게임오버가 되고, 감옥이 떨어지는 연출과 함께 재시작 안내가 표시됩니다.
 
-## Project Purpose
+## 문서 목록
 
-This project demonstrates:
+1. `01_게임_전체_흐름도.md`
+   - 게임 시작부터 플레이, 충돌, 게임오버, 재시작까지의 전체 흐름을 설명합니다.
 
-- Win32 window creation
-- DirectX 11 rendering setup
-- Scene based update and render flow
-- Minimal `GameObject`, `Component`, and `Transform` structure
-- Resource creation through `ResourceManager`
-- HLSL shader based rendering
-- A playable prison escape runner prototype
+2. `02_설계도_및_구조.md`
+   - 폴더 구조, 엔진 구조, 씬 구조, 렌더링 구조를 설명합니다.
 
-## Main Game Scene
+3. `03_클래스_다이어그램.md`
+   - 주요 클래스와 구조체가 어떤 관계로 연결되는지 다이어그램으로 정리합니다.
 
-The actual game logic is concentrated in `RunnerGameScene`.
+4. `04_코드_한줄한줄_설명서.md`
+   - 비전공자도 따라 읽을 수 있도록 주요 코드 파일을 줄 단위에 가깝게 설명합니다.
 
-`RunnerGameScene` manages:
+5. `05_조작_가이드.md`
+   - 어떤 키를 누르면 어떤 일이 일어나는지 사용자 관점에서 설명합니다.
 
-- Player run, jump, and slide states
-- Gravity based jump movement
-- Variable jump height
-- Obstacle movement and spawning
-- One-hit game over collision
-- Forgiving player AABB collision scaled to 85 percent
-- Score accumulation
-- Score based difficulty increase
-- Two alternating background stages every 1000 points
-- Game over jail cage animation
-- Restart with `ResetGame()`
+6. `06_빌드_및_실행_가이드.md`
+   - Visual Studio와 MSBuild 기준으로 빌드/실행 방법을 정리합니다.
 
-## Gameplay Summary
+## 실행 파일
 
-The player escapes while avoiding obstacles. The game starts gently, then becomes more tense as score increases. The score still rises slowly, but obstacle speed and density increase separately through the difficulty logic.
+Debug x64 빌드 결과는 다음 위치에 생성됩니다.
 
-The game keeps the UI minimal:
+`C:\Users\yejun\source\repos\CrimsonRunner\x64\Debug\CrimsonRunner.exe`
 
-- `SCORE` while playing
-- `GAME OVER` and `R RESTART` after game over
+## 핵심 조작
 
-No separate difficulty UI or debug collision lines are rendered in the final game screen.
+- `Space` 또는 `↑`: 점프
+- `↓`: 슬라이드
+- `R`: 게임오버 상태에서 재시작
+- `P`: 디버그용 점수 증가
 
-## Project Scope
+## 현재 게임의 핵심 특징
 
-This is a compact educational prototype. It intentionally avoids complex engine systems such as object pooling, asset pipelines, editor tools, advanced physics, or a separate difficulty manager.
-
+- 낮/밤 교도소 배경 전환
+- 픽셀아트 PNG 에셋 기반 캐릭터와 장애물
+- 점프/슬라이드 회피 구조
+- 스코어 기반 난이도 상승
+- 게임오버 감옥 낙하 연출
+- 픽셀아트 선명도를 위한 Point 필터링

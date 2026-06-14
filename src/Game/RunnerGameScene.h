@@ -35,7 +35,7 @@ namespace Engine
     {
         GameObject* visual = nullptr;
         std::vector<GameObject*> stripeVisuals;
-        Vec2 position = { -0.55f, -0.37f };
+        Vec2 position = { -0.55f, -0.55f };
         Vec2 velocity = { 0.0f, 0.0f };
         PlayerState state = PlayerState::Run;
         AABB collider;
@@ -44,7 +44,7 @@ namespace Engine
         float slideHeight = 0.09f;
         float jumpPower = 2.0f;
         float gravity = -4.2f;
-        float groundY = -0.37f;
+        float groundY = -0.55f;
         Material* runMaterial = nullptr;
         Material* slideMaterial = nullptr;
 
@@ -140,6 +140,9 @@ namespace Engine
         float GetDifficulty() const;
         float GetObstacleWidth(Obstacle::Type type) const;
         float GetObstacleHeight(Obstacle::Type type) const;
+        float GetObstacleVisualWidth(Obstacle::Type type) const;
+        float GetObstacleVisualHeight(Obstacle::Type type) const;
+        Vec2 GetObstacleVisualPosition(const Obstacle& obstacle) const;
         bool RandomChance(float chance);
         float GetStandingPlayerTopY() const;
         float GetSlidingPlayerTopY() const;
@@ -156,6 +159,8 @@ namespace Engine
         std::vector<Obstacle> obstacles;
         std::vector<GameObject*> obstacleVisuals;
         std::vector<GameObject*> jailBars;
+        GameObject* gameOverOverlay = nullptr;
+        GameObject* jailCage = nullptr;
         GameObject* background = nullptr;
         Material* policeMaterial = nullptr;
         Material* dogMaterial = nullptr;

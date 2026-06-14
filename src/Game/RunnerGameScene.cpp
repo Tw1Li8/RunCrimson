@@ -14,10 +14,34 @@ namespace Engine
     {
         constexpr int MaxObstacleVisuals = 8;
         constexpr int TextureSize = 16;
+        constexpr int DetailTextureSize = 64;
 
         unsigned int Rgba(unsigned int r, unsigned int g, unsigned int b)
         {
             return 0xff000000u | (b << 16) | (g << 8) | r;
+        }
+
+        bool InRect(int x, int y, int left, int top, int right, int bottom)
+        {
+            return x >= left && x <= right && y >= top && y <= bottom;
+        }
+
+        bool InEllipse(int x, int y, float cx, float cy, float rx, float ry)
+        {
+            const float dx = (static_cast<float>(x) - cx) / rx;
+            const float dy = (static_cast<float>(y) - cy) / ry;
+            return dx * dx + dy * dy <= 1.0f;
+        }
+
+        unsigned int Shade(unsigned int baseR, unsigned int baseG, unsigned int baseB, int amount)
+        {
+            const auto clamp = [](int value)
+                {
+                    return static_cast<unsigned int>(std::clamp(value, 0, 255));
+                };
+            return Rgba(clamp(static_cast<int>(baseR) + amount),
+                clamp(static_cast<int>(baseG) + amount),
+                clamp(static_cast<int>(baseB) + amount));
         }
 
         // ── 죄수 : 달리기 / 점프 (서있는 자세) ──────────────────────
@@ -112,143 +136,149 @@ namespace Engine
         }
 
         // ── 경찰관 ───────────────────────────────────────────────────
-        std::array<unsigned int, TextureSize* TextureSize> MakePoliceTexture()
+        std::array<unsigned int, DetailTextureSize* DetailTextureSize> MakePoliceTexture()
         {
-            std::array<unsigned int, TextureSize* TextureSize> pixels = {};
-            for (int y = 0; y < TextureSize; ++y)
+            std::array<unsigned int, DetailTextureSize* DetailTextureSize> pixels = {};
+            for (int y = 0; y < DetailTextureSize; ++y)
             {
-                for (int x = 0; x < TextureSize; ++x)
+                for (int x = 0; x < DetailTextureSize; ++x)
                 {
-                    unsigned int color = Rgba(20, 24, 32);
+                    unsigned int color = Rgba(0, 0, 0);
 
-                    const bool hatTop = y <= 2 && x >= 3 && x <= 12;
-                    const bool hatBrim = y == 3 && x >= 2 && x <= 13;
-                    const bool face = y >= 4 && y <= 6 && x >= 4 && x <= 11;
-                    const bool leftEye = y == 5 && x == 6;
-                    const bool rightEye = y == 5 && x == 9;
-                    const bool mustache = y == 6 && x >= 6 && x <= 9;
-                    const bool body = y >= 7 && y <= 13 && x >= 3 && x <= 12;
-                    const bool badge = y >= 8 && y <= 10 && x >= 7 && x <= 9;
-                    const bool epLeft = y == 7 && x >= 3 && x <= 4;
-                    const bool epRight = y == 7 && x >= 11 && x <= 12;
-                    const bool belt = y == 11 && x >= 3 && x <= 12;
-                    const bool leftLeg = y >= 14 && x >= 4 && x <= 6;
-                    const bool rightLeg = y >= 14 && x >= 9 && x <= 11;
+                    const bool head = InEllipse(x, y, 32.0f, 19.0f, 13.0f, 11.0f);
+                    const bool earLeft = InEllipse(x, y, 18.0f, 20.0f, 3.5f, 5.0f);
+                    const bool earRight = InEllipse(x, y, 46.0f, 20.0f, 3.5f, 5.0f);
+                    const bool cap = InRect(x, y, 19, 7, 45, 14) || InRect(x, y, 15, 14, 49, 17);
+                    const bool capBadge = InRect(x, y, 30, 8, 34, 12);
+                    const bool neck = InRect(x, y, 28, 29, 36, 34);
+                    const bool torso = InRect(x, y, 18, 33, 46, 52);
+                    const bool shoulder = InRect(x, y, 13, 35, 51, 41);
+                    const bool belt = InRect(x, y, 18, 48, 46, 51);
+                    const bool legLeft = InRect(x, y, 22, 52, 29, 62);
+                    const bool legRight = InRect(x, y, 35, 52, 42, 62);
+                    const bool armLeft = InRect(x, y, 11, 40, 17, 54);
+                    const bool armRight = InRect(x, y, 47, 38, 53, 52);
 
-                    if (badge)              color = Rgba(255, 210, 50);
-                    else if (epLeft || epRight)  color = Rgba(20, 50, 120);
-                    else if (belt)               color = Rgba(10, 12, 18);
-                    else if (body)               color = Rgba(35, 65, 160);
-                    else if (hatTop)             color = Rgba(10, 20, 55);
-                    else if (hatBrim)            color = Rgba(15, 28, 70);
-                    else if (mustache)           color = Rgba(60, 40, 20);
-                    else if (leftEye || rightEye)color = Rgba(30, 30, 30);
-                    else if (face)               color = Rgba(220, 170, 120);
-                    else if (leftLeg || rightLeg)color = Rgba(10, 20, 55);
+                    if (armLeft || armRight) color = Rgba(22, 43, 115);
+                    if (shoulder || torso) color = Shade(35, 70, 165, (x + y) % 7);
+                    if (legLeft || legRight || belt) color = Rgba(10, 18, 48);
+                    if (neck || earLeft || earRight || head) color = Rgba(220, 170, 120);
+                    if (InRect(x, y, 24, 20, 26, 22) || InRect(x, y, 38, 20, 40, 22)) color = Rgba(24, 24, 24);
+                    if (InRect(x, y, 27, 26, 37, 28)) color = Rgba(78, 42, 22);
+                    if (cap) color = Rgba(9, 22, 66);
+                    if (InRect(x, y, 15, 17, 49, 19)) color = Rgba(18, 36, 92);
+                    if (capBadge || InRect(x, y, 31, 38, 36, 44)) color = Rgba(245, 205, 55);
+                    if (InRect(x, y, 20, 34, 44, 36) || InRect(x, y, 20, 45, 44, 46)) color = Rgba(58, 92, 188);
 
-                    pixels[y * TextureSize + x] = color;
+                    pixels[y * DetailTextureSize + x] = color;
                 }
             }
             return pixels;
         }
 
         // ── 군견 (독일 셰퍼드 옆모습) ────────────────────────────────
-        std::array<unsigned int, TextureSize* TextureSize> MakeDogTexture()
+        std::array<unsigned int, DetailTextureSize* DetailTextureSize> MakeDogTexture()
         {
-            std::array<unsigned int, TextureSize* TextureSize> pixels = {};
-            for (int y = 0; y < TextureSize; ++y)
+            std::array<unsigned int, DetailTextureSize* DetailTextureSize> pixels = {};
+            for (int y = 0; y < DetailTextureSize; ++y)
             {
-                for (int x = 0; x < TextureSize; ++x)
+                for (int x = 0; x < DetailTextureSize; ++x)
                 {
-                    unsigned int color = Rgba(20, 24, 32);
+                    unsigned int color = Rgba(0, 0, 0);
 
                     const unsigned int fur = Rgba(140, 80, 30);
                     const unsigned int darkFur = Rgba(60, 35, 12);
-                    const unsigned int noseCol = Rgba(20, 15, 12);
 
-                    const bool tail = (x == 0 && y == 3) || (x == 1 && y == 2) || (x == 2 && y == 1);
-                    const bool body = y >= 4 && y <= 10 && x >= 2 && x <= 12;
-                    const bool saddle = y >= 4 && y <= 7 && x >= 3 && x <= 10;
-                    const bool head = y >= 2 && y <= 6 && x >= 10 && x <= 14;
-                    const bool ear = (y == 1 || y == 2) && (x == 11 || x == 12);
-                    const bool snout = y >= 6 && y <= 7 && x >= 13 && x <= 15;
-                    const bool nosePixel = y == 6 && x == 15;
-                    const bool eye = y == 3 && x == 12;
-                    const bool frontLegs = y >= 11 && y <= 15 && (x == 10 || x == 11);
-                    const bool backLegs = y >= 11 && y <= 15 && (x == 3 || x == 4);
+                    const bool tail = (x >= 3 && x <= 18 && y >= 18 - x / 3 && y <= 23 - x / 3);
+                    const bool body = InEllipse(x, y, 29.0f, 32.0f, 20.0f, 12.0f);
+                    const bool head = InEllipse(x, y, 48.0f, 25.0f, 10.0f, 9.0f);
+                    const bool snout = InEllipse(x, y, 57.0f, 28.0f, 7.0f, 5.0f);
+                    const bool ear = InRect(x, y, 43, 11, 49, 22) || InRect(x, y, 49, 13, 54, 23);
+                    const bool legBack = InRect(x, y, 16, 39, 22, 58) || InRect(x, y, 27, 40, 32, 58);
+                    const bool legFront = InRect(x, y, 42, 38, 47, 58) || InRect(x, y, 51, 37, 56, 58);
+                    const bool paw = InRect(x, y, 14, 57, 24, 61) || InRect(x, y, 25, 57, 34, 61) ||
+                        InRect(x, y, 40, 57, 49, 61) || InRect(x, y, 49, 57, 59, 61);
 
-                    if (nosePixel)              color = noseCol;
-                    else if (eye)                    color = Rgba(30, 30, 30);
-                    else if (ear)                    color = darkFur;
-                    else if (snout)                  color = Rgba(180, 140, 90);
-                    else if (head)                   color = fur;
-                    else if (saddle)                 color = darkFur;
-                    else if (body)                   color = fur;
-                    else if (tail)                   color = fur;
-                    else if (frontLegs || backLegs)  color = darkFur;
+                    if (tail || body || head || legBack || legFront) color = fur;
+                    if (InRect(x, y, 18, 23, 41, 32) || ear) color = darkFur;
+                    if (snout) color = Rgba(184, 135, 78);
+                    if (paw) color = Rgba(70, 42, 18);
+                    if (InRect(x, y, 51, 22, 53, 24)) color = Rgba(18, 18, 18);
+                    if (InRect(x, y, 61, 27, 63, 30)) color = Rgba(18, 12, 10);
+                    if (body && ((x + y) % 9 == 0)) color = Rgba(164, 96, 38);
 
-                    pixels[y * TextureSize + x] = color;
+                    pixels[y * DetailTextureSize + x] = color;
                 }
             }
             return pixels;
         }
 
         // ── 벽 (교도소 벽돌) ─────────────────────────────────────────
-        std::array<unsigned int, TextureSize* TextureSize> MakeWallTexture()
+        std::array<unsigned int, DetailTextureSize* DetailTextureSize> MakeWallTexture()
         {
-            std::array<unsigned int, TextureSize* TextureSize> pixels = {};
-            for (int y = 0; y < TextureSize; ++y)
+            std::array<unsigned int, DetailTextureSize* DetailTextureSize> pixels = {};
+            for (int y = 0; y < DetailTextureSize; ++y)
             {
-                for (int x = 0; x < TextureSize; ++x)
+                for (int x = 0; x < DetailTextureSize; ++x)
                 {
-                    const bool hMortar = (y % 4 == 3);
-                    const int  offset = (y / 4) % 2 == 0 ? 0 : 4;
-                    const bool vMortar = !hMortar && ((x + offset) % 8 == 7);
+                    const bool hMortar = (y % 10 == 9);
+                    const int  offset = (y / 10) % 2 == 0 ? 0 : 8;
+                    const bool vMortar = !hMortar && ((x + offset) % 16 == 15);
 
                     unsigned int color;
                     if (hMortar || vMortar)
                     {
-                        color = Rgba(38, 38, 42);
+                        color = Rgba(40, 40, 44);
                     }
                     else
                     {
-                        const int brickX = (x + offset) / 8;
-                        const int brickY = y / 4;
-                        const bool lighter = (brickX + brickY) % 2 == 0;
-                        color = lighter ? Rgba(145, 142, 150) : Rgba(120, 118, 128);
+                        const int brickX = (x + offset) / 16;
+                        const int brickY = y / 10;
+                        const int grain = ((x * 13 + y * 7) % 11) - 5;
+                        const bool chip = (x + y * 3) % 29 == 0 || (x * 5 + y) % 37 == 0;
+                        color = (brickX + brickY) % 2 == 0 ? Shade(142, 138, 148, grain) : Shade(116, 112, 126, grain);
+                        if (chip) color = Rgba(76, 74, 82);
                     }
-                    pixels[y * TextureSize + x] = color;
+                    pixels[y * DetailTextureSize + x] = color;
                 }
             }
             return pixels;
         }
 
         // ── 낮은 장애물 (철조망 바) ──────────────────────────────────
-        std::array<unsigned int, TextureSize* TextureSize> MakeLowBarTexture()
+        std::array<unsigned int, DetailTextureSize* DetailTextureSize> MakeLowBarTexture()
         {
-            std::array<unsigned int, TextureSize* TextureSize> pixels = {};
-            for (int y = 0; y < TextureSize; ++y)
+            std::array<unsigned int, DetailTextureSize* DetailTextureSize> pixels = {};
+            for (int y = 0; y < DetailTextureSize; ++y)
             {
-                for (int x = 0; x < TextureSize; ++x)
+                for (int x = 0; x < DetailTextureSize; ++x)
                 {
-                    unsigned int color = Rgba(65, 10, 18);
+                    unsigned int color = Rgba(0, 0, 0);
 
-                    const bool topSpike = y <= 2 && (x % 4 == 1 || x % 4 == 2)
-                        && (y < 2 - (x % 4 == 2 ? 1 : 0));
-                    const bool spikeBase = y == 2;
-                    const bool railTop = y >= 3 && y <= 5;
-                    const bool railBottom = y >= 9 && y <= 11;
-                    const bool highlight = (y == 3 || y == 9);
-                    const bool base = y >= 12;
+                    const bool railTop = InRect(x, y, 0, 16, 63, 25);
+                    const bool railBottom = InRect(x, y, 0, 39, 63, 48);
+                    const bool post = (x % 16 >= 6 && x % 16 <= 10) && y >= 14 && y <= 53;
+                    const bool base = y >= 54;
+                    const bool highlight = y == 16 || y == 39 || (post && x % 16 == 6);
+                    const bool spikeBase = y >= 12 && y <= 15;
+                    bool spike = false;
+                    for (int sx = 8; sx < 64; sx += 16)
+                    {
+                        const int dx = std::abs(x - sx);
+                        if (dx <= 6 && y >= 2 && y <= 13 - dx)
+                        {
+                            spike = true;
+                        }
+                    }
 
-                    if (topSpike)   color = Rgba(215, 215, 220);
-                    else if (spikeBase)  color = Rgba(190, 185, 195);
-                    else if (highlight)  color = Rgba(220, 50, 60);
-                    else if (railTop)    color = Rgba(185, 30, 42);
-                    else if (railBottom) color = Rgba(185, 30, 42);
-                    else if (base)       color = Rgba(50, 8, 14);
+                    if (spike) color = Rgba(226, 226, 232);
+                    else if (spikeBase) color = Rgba(170, 170, 178);
+                    else if (highlight) color = Rgba(235, 62, 72);
+                    else if (railTop || railBottom || post) color = Rgba(177, 28, 42);
+                    else if (base) color = Rgba(58, 9, 15);
+                    if ((railTop || railBottom) && (x + y) % 17 == 0) color = Rgba(118, 18, 28);
 
-                    pixels[y * TextureSize + x] = color;
+                    pixels[y * DetailTextureSize + x] = color;
                 }
             }
             return pixels;
@@ -257,80 +287,82 @@ namespace Engine
         // ── 배경 ─────────────────────────────────────────────────────
         // stage 0: 교도소 내부 (벽돌+창살창문+형광등+바닥)
         // stage 1: 교도소 외부 (밤하늘+달+별+건물실루엣+철조망+아스팔트)
-        std::array<unsigned int, TextureSize* TextureSize> MakeBackgroundTexture(int stage)
+        std::array<unsigned int, DetailTextureSize* DetailTextureSize> MakeBackgroundTexture(int stage)
         {
-            std::array<unsigned int, TextureSize* TextureSize> pixels = {};
-            for (int y = 0; y < TextureSize; ++y)
+            std::array<unsigned int, DetailTextureSize* DetailTextureSize> pixels = {};
+            for (int y = 0; y < DetailTextureSize; ++y)
             {
-                for (int x = 0; x < TextureSize; ++x)
+                for (int x = 0; x < DetailTextureSize; ++x)
                 {
                     unsigned int color = Rgba(25, 25, 35);
 
                     if (stage == 0)
                     {
-                        const bool floor = y >= 12;
-                        const bool floorCrack = y == 12 && (x == 3 || x == 9);
-                        const bool hMortar = !floor && (y % 4 == 3);
-                        const int  bOff = (y / 4) % 2 == 0 ? 0 : 4;
-                        const bool vMortar = !floor && !hMortar && ((x + bOff) % 8 == 7);
+                        const bool floor = y >= 48;
+                        const bool floorCrack = (y == 50 && x >= 8 && x <= 17) || (y == 56 && x >= 35 && x <= 49) ||
+                            (x == 43 && y >= 52 && y <= 60);
+                        const bool hMortar = !floor && (y % 10 == 9);
+                        const int  bOff = (y / 10) % 2 == 0 ? 0 : 8;
+                        const bool vMortar = !floor && !hMortar && ((x + bOff) % 16 == 15);
 
-                        const bool windowBg = x >= 10 && x <= 14 && y >= 1 && y <= 6;
-                        const bool windowBar = windowBg && (x == 11 || x == 13);
-                        const bool windowFrame = (x == 10 || x == 14) && y >= 1 && y <= 6;
-                        const bool windowTop = y == 1 && x >= 10 && x <= 14;
-                        const bool windowBot = y == 6 && x >= 10 && x <= 14;
-                        const bool lamp = y == 0 && x >= 1 && x <= 5;
+                        const bool windowBg = InRect(x, y, 42, 6, 58, 29);
+                        const bool windowBar = windowBg && (x == 47 || x == 53 || y == 17);
+                        const bool windowFrame = (x == 41 || x == 59) && y >= 5 && y <= 30;
+                        const bool windowTop = y == 5 && x >= 41 && x <= 59;
+                        const bool windowBot = y == 30 && x >= 41 && x <= 59;
+                        const bool lamp = InEllipse(x, y, 14.0f, 8.0f, 10.0f, 4.0f);
+                        const bool lampGlow = InEllipse(x, y, 14.0f, 10.0f, 18.0f, 9.0f);
+                        const bool pipe = InRect(x, y, 5, 18, 8, 47) || InRect(x, y, 5, 18, 23, 21);
+                        const bool poster = InRect(x, y, 23, 24, 34, 39);
 
-                        if (lamp)                              color = Rgba(240, 235, 190);
+                        if (lampGlow)                          color = Rgba(75, 68, 62);
+                        if (lamp)                              color = Rgba(242, 232, 168);
                         else if (windowBar)                         color = Rgba(40, 45, 55);
                         else if (windowFrame || windowTop || windowBot) color = Rgba(55, 60, 70);
-                        else if (windowBg)                          color = Rgba(70, 110, 160);
+                        else if (windowBg)                          color = Rgba(54, 90, 138);
+                        else if (pipe)                              color = Rgba(58, 62, 68);
+                        else if (poster)                            color = ((x + y) % 5 == 0) ? Rgba(118, 98, 72) : Rgba(152, 128, 88);
                         else if (floorCrack)                        color = Rgba(30, 30, 36);
-                        else if (floor)                             color = Rgba(50, 50, 60);
+                        else if (floor)                             color = Shade(50, 50, 60, ((x * 3 + y) % 9) - 4);
                         else if (hMortar || vMortar)                color = Rgba(28, 30, 38);
                         else
                         {
-                            const int bx = (x + bOff) / 8;
-                            const int by = y / 4;
-                            color = (bx + by) % 2 == 0 ? Rgba(95, 88, 100) : Rgba(78, 72, 84);
+                            const int bx = (x + bOff) / 16;
+                            const int by = y / 10;
+                            color = (bx + by) % 2 == 0 ? Shade(94, 87, 99, ((x + y) % 7) - 3) : Shade(78, 72, 84, ((x * 2 + y) % 7) - 3);
                         }
                     }
                     else
                     {
-                        const bool sky = y <= 7;
-                        const bool moon = y >= 1 && y <= 4 && x >= 11 && x <= 14;
-                        const bool moonShad = y >= 1 && y <= 3 && x >= 13 && x <= 14;
-                        const bool star1 = y == 0 && x == 2;
-                        const bool star2 = y == 1 && x == 6;
-                        const bool star3 = y == 3 && x == 1;
-                        const bool star4 = y == 2 && x == 9;
-                        const bool bldg = y >= 6 && y <= 9 &&
-                            ((x >= 0 && x <= 2) || (x >= 5 && x <= 7) || (x >= 12 && x <= 15));
-                        const bool bldgWin = y == 8 && (x == 1 || x == 6 || x == 13);
-                        const bool fencePost = y >= 8 && y <= 12 && (x % 5 == 0);
-                        const bool fenceWire = (y == 9 || y == 11) && y <= 12;
-                        const bool road = y >= 13;
-                        const bool roadLine = y == 13;
+                        const bool moon = InEllipse(x, y, 51.0f, 11.0f, 8.0f, 8.0f);
+                        const bool moonShad = InEllipse(x, y, 55.0f, 8.0f, 6.0f, 7.0f);
+                        const bool star = (x * 17 + y * 23) % 113 == 0 && y < 27;
+                        const bool bldg = (InRect(x, y, 0, 27, 11, 43) || InRect(x, y, 19, 23, 31, 43) ||
+                            InRect(x, y, 47, 29, 63, 43));
+                        const bool bldgWin = bldg && y % 7 == 2 && x % 5 == 1;
+                        const bool fencePost = y >= 36 && y <= 52 && (x % 10 == 0);
+                        const bool fenceWire = (y == 40 || y == 47) && y <= 52;
+                        const bool road = y >= 51;
+                        const bool roadLine = y == 55 && (x / 8) % 2 == 0;
 
-                        if (moonShad)   color = Rgba(200, 195, 140);
-                        else if (moon)       color = Rgba(245, 238, 170);
-                        else if (star1 || star2 || star3 || star4) color = Rgba(240, 240, 200);
-                        else if (bldgWin)    color = Rgba(220, 190, 80);
-                        else if (bldg)       color = Rgba(22, 24, 32);
-                        else if (fencePost)  color = Rgba(85, 90, 95);
-                        else if (fenceWire)  color = Rgba(70, 75, 78);
-                        else if (roadLine)   color = Rgba(55, 55, 58);
-                        else if (road)       color = Rgba(42, 42, 48);
-                        else if (sky)
+                        if (moonShad) color = Rgba(185, 184, 138);
+                        else if (moon) color = Rgba(245, 238, 170);
+                        else if (star) color = Rgba(240, 240, 200);
+                        else if (bldgWin) color = Rgba(220, 190, 80);
+                        else if (bldg) color = Rgba(20, 23, 32);
+                        else if (fencePost) color = Rgba(86, 92, 98);
+                        else if (fenceWire) color = Rgba(70, 76, 82);
+                        else if (roadLine) color = Rgba(120, 118, 90);
+                        else if (road) color = Shade(42, 42, 48, ((x + y * 2) % 7) - 3);
+                        else
                         {
-                            const unsigned int dark = 40 + y * 8;
+                            const unsigned int dark = 34 + y * 3;
                             const unsigned int b = dark + 30 < 255u ? dark + 30 : 255u;
                             color = Rgba(dark / 2, dark * 3 / 4, b);
                         }
-                        else color = Rgba(30, 45, 70);
                     }
 
-                    pixels[y * TextureSize + x] = color;
+                    pixels[y * DetailTextureSize + x] = color;
                 }
             }
             return pixels;
@@ -373,19 +405,61 @@ namespace Engine
         const auto background0 = MakeBackgroundTexture(0);
         const auto background1 = MakeBackgroundTexture(1);
 
-        Material* groundMaterial = resources.CreateMaterial("Ground", { 0.20f, 0.78f, 0.42f, 1.0f });
+        Material* groundMaterial = resources.LoadMaterialFromFile(
+            "Ground", { 0.90f, 0.90f, 0.86f, 1.0f }, L"Textures/Ground_Prison_Run.png");
+        if (!groundMaterial)
+        {
+            groundMaterial = resources.CreateMaterial("Ground", { 0.22f, 0.22f, 0.22f, 1.0f });
+        }
         Material* jailMaterial = resources.CreateMaterial("JailBars", { 0.03f, 0.04f, 0.06f, 1.0f });
-        policeMaterial = resources.CreateTexturedMaterial("Police", { 1, 1, 1, 1 }, policeTexture.data(), TextureSize, TextureSize);
-        dogMaterial = resources.CreateTexturedMaterial("Dog", { 1, 1, 1, 1 }, dogTexture.data(), TextureSize, TextureSize);
-        wallMaterial = resources.CreateTexturedMaterial("Wall", { 1, 1, 1, 1 }, wallTexture.data(), TextureSize, TextureSize);
-        lowBarMaterial = resources.CreateTexturedMaterial("LowBar", { 1, 1, 1, 1 }, lowBarTexture.data(), TextureSize, TextureSize);
-        backgroundMaterials[0] = resources.CreateTexturedMaterial("BackgroundPrisonInside", { 1, 1, 1, 1 }, background0.data(), TextureSize, TextureSize);
-        backgroundMaterials[1] = resources.CreateTexturedMaterial("BackgroundEscapeOutside", { 1, 1, 1, 1 }, background1.data(), TextureSize, TextureSize);
+        Material* gameOverOverlayMaterial = resources.CreateMaterial("GameOverOverlay", { 0.0f, 0.0f, 0.0f, 0.45f });
+        Material* jailCageMaterial = resources.LoadMaterialFromFile(
+            "JailCage", { 1, 1, 1, 1 }, L"Textures/GameOver_JailCage.png");
+        if (!jailCageMaterial)
+        {
+            jailCageMaterial = jailMaterial;
+        }
+        policeMaterial = resources.LoadMaterialFromFile(
+            "Police", { 1, 1, 1, 1 }, L"Textures/Obstacle_Police.png");
+        if (!policeMaterial)
+        {
+            policeMaterial = resources.CreateTexturedMaterial("Police", { 1, 1, 1, 1 }, policeTexture.data(), DetailTextureSize, DetailTextureSize);
+        }
+        dogMaterial = resources.LoadMaterialFromFile(
+            "Dog", { 1, 1, 1, 1 }, L"Textures/Obstacle_Dog.png");
+        if (!dogMaterial)
+        {
+            dogMaterial = resources.CreateTexturedMaterial("Dog", { 1, 1, 1, 1 }, dogTexture.data(), DetailTextureSize, DetailTextureSize);
+        }
+        wallMaterial = resources.LoadMaterialFromFile(
+            "Wall", { 1, 1, 1, 1 }, L"Textures/Obstacle_Wall.png");
+        if (!wallMaterial)
+        {
+            wallMaterial = resources.CreateTexturedMaterial("Wall", { 1, 1, 1, 1 }, wallTexture.data(), DetailTextureSize, DetailTextureSize);
+        }
+        lowBarMaterial = resources.LoadMaterialFromFile(
+            "LowBar", { 1, 1, 1, 1 }, L"Textures/Obstacle_UpperWall.png");
+        if (!lowBarMaterial)
+        {
+            lowBarMaterial = resources.CreateTexturedMaterial("LowBar", { 1, 1, 1, 1 }, lowBarTexture.data(), DetailTextureSize, DetailTextureSize);
+        }
+        backgroundMaterials[0] = resources.LoadMaterialFromFile(
+            "BackgroundPrisonInside", { 1, 1, 1, 1 }, L"Textures/Background_Prison_Day.png");
+        if (!backgroundMaterials[0])
+        {
+            backgroundMaterials[0] = resources.CreateTexturedMaterial("BackgroundPrisonInside", { 1, 1, 1, 1 }, background0.data(), DetailTextureSize, DetailTextureSize);
+        }
+        backgroundMaterials[1] = resources.LoadMaterialFromFile(
+            "BackgroundEscapeOutside", { 1, 1, 1, 1 }, L"Textures/Background_Prison_Night.png");
+        if (!backgroundMaterials[1])
+        {
+            backgroundMaterials[1] = resources.CreateTexturedMaterial("BackgroundEscapeOutside", { 1, 1, 1, 1 }, background1.data(), DetailTextureSize, DetailTextureSize);
+        }
         Mesh* quad = resources.GetMesh("Quad");
 
         GameObject& backgroundVisual = CreateObject("Background");
-        backgroundVisual.GetTransform().position = { 0.0f, 0.15f };
-        backgroundVisual.GetTransform().scale = { 2.4f, 1.9f };
+        backgroundVisual.GetTransform().position = { 0.0f, 0.0f };
+        backgroundVisual.GetTransform().scale = { 2.45f, 2.05f };
         backgroundVisual.AddComponent<MeshRenderer>(quad, backgroundMaterials[0]);
         background = &backgroundVisual;
 
@@ -399,8 +473,8 @@ namespace Engine
         player.collider = { player.position, hitboxData.playerWidth, player.normalHeight };
 
         GameObject& ground = CreateObject("Ground");
-        ground.GetTransform().position = { 0.0f, -0.55f };
-        ground.GetTransform().scale = { 2.4f, 0.12f };
+        ground.GetTransform().position = { 0.0f, -0.675f };
+        ground.GetTransform().scale = { 2.18f, 0.075f };
         ground.AddComponent<MeshRenderer>(quad, groundMaterial);
 
         for (int i = 0; i < MaxObstacleVisuals; ++i)
@@ -421,12 +495,24 @@ namespace Engine
             jailBars.push_back(&bar);
         }
 
+        GameObject& overlay = CreateObject("GameOverOverlay");
+        overlay.GetTransform().position = { -2.0f, -2.0f };
+        overlay.GetTransform().scale = { 2.6f, 2.2f };
+        overlay.AddComponent<MeshRenderer>(quad, gameOverOverlayMaterial);
+        gameOverOverlay = &overlay;
+
+        GameObject& cage = CreateObject("JailCage");
+        cage.GetTransform().position = { -2.0f, -2.0f };
+        cage.GetTransform().scale = { 0.32f, 0.34f };
+        cage.AddComponent<MeshRenderer>(quad, jailCageMaterial);
+        jailCage = &cage;
+
         ResetGame();
     }
 
     void RunnerGameScene::Update(float dt)
     {
-        if (Input::WasKeyPressed('R'))
+        if (gameState == GameState::GameOver && Input::WasKeyPressed('R'))
         {
             ResetGame();
         }
@@ -480,15 +566,15 @@ namespace Engine
         }
         else
         {
-            graphics.QueueText(L"GAME OVER", 455, 230, 48, { 1.0f, 0.18f, 0.12f, 1.0f });
-            graphics.QueueText(L"R RESTART", 462, 285, 32, { 1.0f, 1.0f, 1.0f, 1.0f });
+            graphics.QueueText(L"GAME OVER", 420, 90, 64, { 1.0f, 0.18f, 0.12f, 1.0f });
+            graphics.QueueText(L"R RESTART", 455, 160, 34, { 1.0f, 1.0f, 1.0f, 1.0f });
         }
     }
 
     void RunnerGameScene::UpdatePlayer(float dt)
     {
-        const bool jumpPressed = Input::WasKeyPressed(VK_SPACE);
-        const bool jumpReleased = Input::WasKeyReleased(VK_SPACE);
+        const bool jumpPressed = Input::WasKeyPressed(VK_SPACE) || Input::WasKeyPressed(VK_UP);
+        const bool jumpReleased = Input::WasKeyReleased(VK_SPACE) || Input::WasKeyReleased(VK_UP);
         const bool slideHeld = Input::IsKeyDown(VK_DOWN);
 
         if (jumpPressed && player.isGrounded)
@@ -549,7 +635,7 @@ namespace Engine
             obstacle.position.x -= scrollSpeed * dt;
             if (obstacle.visual)
             {
-                obstacle.visual->GetTransform().position = obstacle.position;
+                obstacle.visual->GetTransform().position = GetObstacleVisualPosition(obstacle);
             }
         }
 
@@ -599,25 +685,27 @@ namespace Engine
             jailDropOffsetY = 0.0f;
         }
 
-        const Vec2 cageCenter = { player.position.x + 0.03f, player.position.y + 0.16f + jailDropOffsetY };
+        const Vec2 cageCenter = { player.position.x + 0.015f, player.position.y + 0.055f + jailDropOffsetY };
+        if (jailCage)
+        {
+            jailCage->GetTransform().position = cageCenter;
+            jailCage->GetTransform().scale = { 0.32f, 0.34f };
+        }
+        if (gameOverOverlay)
+        {
+            gameOverOverlay->GetTransform().position = { 0.0f, 0.0f };
+            gameOverOverlay->GetTransform().scale = { 2.6f, 2.2f };
+        }
+
         for (size_t i = 0; i < jailBars.size(); ++i)
         {
-            if (i < 5)
-            {
-                jailBars[i]->GetTransform().position = { cageCenter.x - 0.22f + static_cast<float>(i) * 0.11f, cageCenter.y };
-                jailBars[i]->GetTransform().scale = { 0.035f, 0.46f };
-            }
-            else
-            {
-                jailBars[i]->GetTransform().position = { cageCenter.x, cageCenter.y + (i == 5 ? 0.23f : -0.23f) };
-                jailBars[i]->GetTransform().scale = { 0.50f, 0.035f };
-            }
+            jailBars[i]->GetTransform().position = { -2.0f, -2.0f };
         }
     }
 
     void RunnerGameScene::ResetGame()
     {
-        player.position = { -0.55f, -0.37f };
+        player.position = { -0.55f, -0.55f };
         player.velocity = { 0.0f, 0.0f };
         player.state = PlayerState::Run;
         player.isGrounded = true;
@@ -640,7 +728,7 @@ namespace Engine
             visual->GetTransform().position = { -2.0f, -2.0f };
         }
 
-        SpawnObstacle(0, spawnData.firstSpawnX, Obstacle::WALL, 0.14f, 0.18f);
+        SpawnObstacleByType(spawnData.firstSpawnX, Obstacle::WALL);
         SpawnNextObstacle();
         SpawnNextObstacle();
         SpawnNextObstacle();
@@ -651,6 +739,14 @@ namespace Engine
         for (GameObject* bar : jailBars)
         {
             bar->GetTransform().position = { -2.0f, -2.0f };
+        }
+        if (jailCage)
+        {
+            jailCage->GetTransform().position = { -2.0f, -2.0f };
+        }
+        if (gameOverOverlay)
+        {
+            gameOverOverlay->GetTransform().position = { -2.0f, -2.0f };
         }
     }
 
@@ -672,8 +768,8 @@ namespace Engine
         obstacle.height = height;
         obstacle.type = type;
 
-        obstacle.visual->GetTransform().position = obstacle.position;
-        obstacle.visual->GetTransform().scale = { obstacle.width, obstacle.height };
+        obstacle.visual->GetTransform().position = GetObstacleVisualPosition(obstacle);
+        obstacle.visual->GetTransform().scale = { GetObstacleVisualWidth(type), GetObstacleVisualHeight(type) };
         if (MeshRenderer* renderer = obstacle.visual->GetComponent<MeshRenderer>())
         {
             renderer->SetMaterial(GetObstacleMaterial(type));
@@ -866,16 +962,43 @@ namespace Engine
 
     float RunnerGameScene::GetObstacleWidth(Obstacle::Type type) const
     {
-        if (type == Obstacle::DOG)    return 0.18f;
-        if (type == Obstacle::LOW_BAR)return 0.28f;
-        return 0.14f;
+        if (type == Obstacle::DOG)     return 0.16f;
+        if (type == Obstacle::WALL)    return 0.12f;
+        if (type == Obstacle::LOW_BAR) return 0.34f;
+        return 0.10f;
     }
 
     float RunnerGameScene::GetObstacleHeight(Obstacle::Type type) const
     {
-        if (type == Obstacle::DOG)    return 0.12f;
-        if (type == Obstacle::LOW_BAR)return 0.08f;
-        return 0.18f;
+        if (type == Obstacle::DOG)     return 0.10f;
+        if (type == Obstacle::WALL)    return 0.16f;
+        if (type == Obstacle::LOW_BAR) return 0.055f;
+        return 0.15f;
+    }
+
+    float RunnerGameScene::GetObstacleVisualWidth(Obstacle::Type type) const
+    {
+        if (type == Obstacle::DOG)     return 0.28f;
+        if (type == Obstacle::WALL)    return 0.16f;
+        if (type == Obstacle::LOW_BAR) return 0.42f;
+        return 0.17f;
+    }
+
+    float RunnerGameScene::GetObstacleVisualHeight(Obstacle::Type type) const
+    {
+        if (type == Obstacle::DOG)     return 0.16f;
+        if (type == Obstacle::WALL)    return 0.18f;
+        if (type == Obstacle::LOW_BAR) return 0.14f;
+        return 0.23f;
+    }
+
+    Vec2 RunnerGameScene::GetObstacleVisualPosition(const Obstacle& obstacle) const
+    {
+        return
+        {
+            obstacle.position.x,
+            obstacle.position.y + (GetObstacleVisualHeight(obstacle.type) - obstacle.height) * 0.5f
+        };
     }
 
     bool RunnerGameScene::RandomChance(float chance)
