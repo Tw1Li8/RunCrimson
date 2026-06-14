@@ -562,7 +562,7 @@ namespace Engine
 
         if (gameState == GameState::Play)
         {
-            graphics.QueueText(L"SCORE " + std::to_wstring(score), 24, 20, 30, { 1.0f, 0.95f, 0.30f, 1.0f });
+            graphics.QueueText(L"SCORE " + std::to_wstring(score), 24, 20, 30, { 1.0f, 0.0f, 0.0f, 1.0f });
         }
         else
         {
